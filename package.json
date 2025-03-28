@@ -1,6 +1,6 @@
 {
-  "name": "jira-9.12.14-mcp-server",
-  "version": "1.0.0",
+  "name": "@andrewyun/jira-9-12-14-mcp-server",
+  "version": "1.0.5",
   "description": "MCP Server for Jira 9.12.14 API",
   "license": "MIT",
   "type": "module",

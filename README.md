@@ -31,7 +31,7 @@ JIRA_AUTH_TOKEN=your-token-here
 EOL
 
 # Run the server directly
-npx jira-9.12.14-mcp-server
+npx @andrewyun/jira-9-12-14-mcp-server
 ```
 
 ### Option 2: Manual Installation
@@ -51,7 +51,7 @@ npm run build
 
 ## Configuration
 
-### Environment Variables
+### Option 1: Environment Variables in .env File
 
 The server reads configuration from a `.env` file in the current directory. Create a file named `.env` with the following settings:
 
@@ -62,8 +62,33 @@ JIRA_AUTH_TOKEN=your-jira-token
 
 You must create this file in the directory where you run the server.
 
-- `JIRA_API_URL`: The base URL of your Jira instance (e.g., `https://your-domain.atlassian.net`)
-- `JIRA_AUTH_TOKEN`: Your Jira API token or Personal Access Token (PAT)
+### Option 2: MCP JSON Environment Variables
+
+As an alternative to the .env file, you can configure the server using MCP JSON environment variables. Update your Claude for Desktop configuration in the `mcpServers` section:
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE/PATH/TO/jira-9.12.14-mcp-server/dist/index.js"
+      ],
+      "env": {
+        "MCP_JIRA_API_URL": "https://your-domain.atlassian.net",
+        "MCP_JIRA_AUTH_TOKEN": "your-jira-token"
+      }
+    }
+  }
+}
+```
+
+Using the MCP JSON environment variables means you don't need to create a .env file.
+
+### Environment Variable Details
+
+- `JIRA_API_URL` or `MCP_JIRA_API_URL`: The base URL of your Jira instance (e.g., `https://your-domain.atlassian.net`)
+- `JIRA_AUTH_TOKEN` or `MCP_JIRA_AUTH_TOKEN`: Your Jira API token or Personal Access Token (PAT)
 
 ### Getting a Jira API Token
 
@@ -71,7 +96,7 @@ You must create this file in the directory where you run the server.
 2. Go to Account Settings > Security > Create and manage API tokens
 3. Click "Create API token"
 4. Give it a name like "MCP Server"
-5. Copy the generated token to your `.env` file
+5. Copy the generated token to your `.env` file or MCP JSON configuration
 
 ## Usage
 
@@ -93,7 +118,11 @@ npm start
       "command": "node",
       "args": [
         "/ABSOLUTE/PATH/TO/jira-9.12.14-mcp-server/dist/index.js"
-      ]
+      ],
+      "env": {
+        "MCP_JIRA_API_URL": "https://your-domain.atlassian.net",
+        "MCP_JIRA_AUTH_TOKEN": "your-jira-token"
+      }
     }
   }
 }
@@ -112,16 +141,18 @@ If you installed via npx, your Claude configuration would look like:
       "command": "npx",
       "args": [
         "--yes",
-        "jira-9.12.14-mcp-server"
-      ]
+        "@andrewyun/jira-9-12-14-mcp-server"
+      ],
+      "env": {
+        "MCP_JIRA_API_URL": "https://your-domain.atlassian.net",
+        "MCP_JIRA_AUTH_TOKEN": "your-jira-token"
+      }
     }
   }
 }
 ```
 
-**Important**: Make sure you have a `.env` file in your home directory or in the directory where Claude for Desktop is installed when using npx.
-
-3. Restart Claude for Desktop
+**Important**: If you're using the MCP JSON environment variables, you don't need a `.env` file. If you're not using MCP JSON environment variables, make sure you have a `.env` file in your home directory or in the directory where Claude for Desktop is installed when using npx.
 
 ## Available Tools
 
@@ -151,6 +182,6 @@ Retrieves detailed information about a specific issue by ID or key.
 
 If you see errors like `JIRA_API_URL environment variable is required`, make sure you:
 
-1. Have created a `.env` file in the directory where you're running the server
-2. Have included both JIRA_API_URL and JIRA_AUTH_TOKEN in the file
+1. Have created a `.env` file in the directory where you're running the server, OR
+2. Have provided `MCP_JIRA_API_URL` and `MCP_JIRA_AUTH_TOKEN` in your Claude for Desktop configuration
 MIT 

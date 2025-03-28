@@ -4,10 +4,20 @@ import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
+import https from 'https';
 
-// Load environment variables from .env file
-// Try to find .env file in current directory, and then in project root directory
+// Load environment variables from MCP JSON env or .env file
+// Try to get variables from MCP env first, then .env file as fallback
 const loadEnv = () => {
+  // Check if MCP env variables are present
+  if (process.env.MCP_JIRA_API_URL && process.env.MCP_JIRA_AUTH_TOKEN) {
+    console.log('Using environment variables from MCP JSON env configuration');
+    process.env.JIRA_API_URL = process.env.MCP_JIRA_API_URL;
+    process.env.JIRA_AUTH_TOKEN = process.env.MCP_JIRA_AUTH_TOKEN;
+    return;
+  }
+
+  // Fallback to .env file
   // Try current working directory first
   if (fs.existsSync(join(process.cwd(), '.env'))) {
     config({ path: join(process.cwd(), '.env') });
@@ -23,7 +33,7 @@ const loadEnv = () => {
       config({ path: join(rootDir, '.env') });
       console.log('Loaded .env file from project root directory');
     } else {
-      console.log('No .env file found. Please create one with JIRA_API_URL and JIRA_AUTH_TOKEN');
+      console.log('No environment variable found. Please create one with JIRA_API_URL and JIRA_AUTH_TOKEN or provide MCP_JIRA_API_URL and MCP_JIRA_AUTH_TOKEN in MCP JSON environment');
     }
   }
 };
@@ -35,20 +45,28 @@ const JIRA_API_URL = process.env.JIRA_API_URL || '';
 const JIRA_AUTH_TOKEN = process.env.JIRA_AUTH_TOKEN || '';
 
 if (!JIRA_API_URL) {
-  throw new Error('JIRA_API_URL environment variable is required. Create a .env file in your current directory.');
+  throw new Error('JIRA_API_URL environment variable is required. Create a .env file in your current directory or provide MCP_JIRA_API_URL in MCP JSON environment.');
 }
 
 if (!JIRA_AUTH_TOKEN) {
-  throw new Error('JIRA_AUTH_TOKEN environment variable is required. Create a .env file in your current directory.');
+  throw new Error('JIRA_AUTH_TOKEN environment variable is required. Create a .env file in your current directory or provide MCP_JIRA_AUTH_TOKEN in MCP JSON environment.');
 }
 
 class JiraClient {
   private baseUrl: string;
   private authToken: string;
+  private httpsAgent: https.Agent;
 
   constructor(baseUrl: string, authToken: string) {
     this.baseUrl = baseUrl;
     this.authToken = authToken;
+    
+    // Create custom HTTPS agent with TLS 1.1 support
+    this.httpsAgent = new https.Agent({
+      minVersion: 'TLSv1',
+      maxVersion: 'TLSv1.2',
+      ciphers: 'DEFAULT@SECLEVEL=0' // Lower security level to support older TLS versions
+    });
   }
 
   private async request<T>(
@@ -68,6 +86,7 @@ class JiraClient {
     const options: NodeFetchRequestInit = {
       method,
       headers,
+      agent: this.httpsAgent // Use the custom HTTPS agent
     };
 
     if (body) {

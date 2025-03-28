@@ -19,8 +19,8 @@ import {
 // Create the MCP server
 const server = new Server(
   {
-    name: "jira-9.12.14-mcp-server",
-    version: "1.0.0",
+    name: "jira-9-12-14-mcp-server",
+    version: "1.0.3",
   },
   {
     capabilities: {
